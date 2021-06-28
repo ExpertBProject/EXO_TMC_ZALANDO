@@ -101,6 +101,8 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EXO_CFZA.vb" />
+    <Compile Include="EXO_GLOBALES.vb" />
     <Compile Include="EXO_OWTR.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -159,6 +161,17 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="XML_FILTROS\XML_Filtros.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="XML_MENUS\XML_MENU.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Imágenes\MnCFZA.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="XML_DB\UT_EXO_TMPDOC.xml" />
+    <EmbeddedResource Include="XML_DB\UT_EXO_TMPDOCL.xml" />
+    <EmbeddedResource Include="XML_DB\UT_EXO_TMPDOCLT.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>

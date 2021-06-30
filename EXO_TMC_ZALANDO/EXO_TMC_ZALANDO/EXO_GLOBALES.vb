@@ -28,7 +28,7 @@ Public Class EXO_GLOBALES
         Next
     End Sub
 #Region "Funciones formateos datos"
-    Public Shared Function TextToDbl(ByRef oObjGlobal As EXO_Generales.EXO_General, ByVal sValor As String) As Double
+    Public Shared Function TextToDbl(ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI, ByVal sValor As String) As Double
         Dim cValor As Double = 0
         Dim sValorAux As String = "0"
 
@@ -37,11 +37,11 @@ Public Class EXO_GLOBALES
         Try
             sValorAux = sValor
 
-            If oObjGlobal.conexionSAP.SBOApp.ClientType = BoClientType.ct_Desktop Then
+            If oObjGlobal.SBOApp.ClientType = SAPbouiCOM.BoClientType.ct_Desktop Then
                 If sValorAux <> "" Then
                     If Left(sValorAux, 1) = "." Then sValorAux = "0" & sValorAux
 
-                    If oObjGlobal.conexionSAP.OADM.separadorMillarB1 = "." AndAlso oObjGlobal.conexionSAP.OADM.separadorDecimalB1 = "," Then 'Decimales ES
+                    If oObjGlobal.refDi.OADM.separadorMillarB1 = "." AndAlso oObjGlobal.refDi.OADM.separadorDecimalB1 = "," Then 'Decimales ES
                         If sValorAux.IndexOf(".") > 0 AndAlso sValorAux.IndexOf(",") > 0 Then
                             cValor = CDbl(sValorAux.Replace(".", ""))
                         ElseIf sValorAux.IndexOf(".") > 0 Then
@@ -63,7 +63,7 @@ Public Class EXO_GLOBALES
                 If sValorAux <> "" Then
                     If Left(sValorAux, 1) = "," Then sValorAux = "0" & sValorAux
 
-                    If oObjGlobal.conexionSAP.OADM.separadorMillarB1 = "." AndAlso oObjGlobal.conexionSAP.OADM.separadorDecimalB1 = "," Then 'Decimales ES
+                    If oObjGlobal.refDi.OADM.separadorMillarB1 = "." AndAlso oObjGlobal.refDi.OADM.separadorDecimalB1 = "," Then 'Decimales ES
                         If sValorAux.IndexOf(",") > 0 AndAlso sValorAux.IndexOf(".") > 0 Then
                             cValor = CDbl(sValorAux.Replace(",", ""))
                         ElseIf sValorAux.IndexOf(",") > 0 Then
@@ -91,14 +91,14 @@ Public Class EXO_GLOBALES
             Throw ex
         End Try
     End Function
-    Public Shared Function DblNumberToText(ByRef oObjGlobal As EXO_Generales.EXO_General, ByVal sValor As String) As String
+    Public Shared Function DblNumberToText(ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI, ByVal sValor As String) As String
         Dim sNumberDouble As String = "0"
 
         DblNumberToText = "0"
 
         Try
             If sValor <> "" Then
-                If oObjGlobal.conexionSAP.OADM.separadorMillarB1 = "." AndAlso oObjGlobal.conexionSAP.OADM.separadorDecimalB1 = "," Then 'Decimales ES
+                If oObjGlobal.refDi.OADM.separadorMillarB1 = "." AndAlso oObjGlobal.refDi.OADM.separadorDecimalB1 = "," Then 'Decimales ES
                     sNumberDouble = sValor
                 Else 'Decimales USA
                     sNumberDouble = sValor.Replace(",", ".")
@@ -345,8 +345,8 @@ Public Class EXO_GLOBALES
                                     sSQL = "SELECT ""BillToDef"" FROM ""OCRD"" WHERE ""CardCode""='" & sCliente & "' "
                                     Dim sDIrFacDef As String = objglobal.refDi.SQL.sqlStringB1(sSQL)
                                     If sDIrFacDef <> "" Then
-                                            sDirFac = sDIrFacDef
-                                        End If
+                                        sDirFac = sDIrFacDef
+                                    End If
 
                                     sSQL = "SELECT ""ShipToDef"" FROM ""OCRD"" WHERE ""CardCode""='" & sCliente & "' "
                                     Dim sDirEnvDef As String = objglobal.refDi.SQL.sqlStringB1(sSQL)
@@ -407,100 +407,105 @@ Public Class EXO_GLOBALES
 
 #End Region
 #Region "Lectura de Líneas"
-                                oSboApp.StatusBar.SetText("(EXO) - Leyendo Valores de Líneas...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                                'Ahora la Línea
-                                For L = 1 To sCamposL.GetUpperBound(0)
-                                    Select Case sCamposL(L, 1)
-                                        Case "AcctCode"
-                                            sCuenta = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sCuenta = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "ItemCode"
-                                            sArt = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sArt = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "Dscription"
-                                            sArtDes = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sArtDes = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "Quantity"
-                                            sCantidad = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sCantidad = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "UnitPrice"
-                                            sprecio = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sprecio = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "DiscPrcnt"
-                                            sDtoLin = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sDtoLin = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "EXO_IMPSRV"
-                                            sTotalServicios = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sTotalServicios = "" Then
-                                                Exit Sub
-                                            End If
-                                            oSboApp.StatusBar.SetText("(EXO) - " & sTotalServicios, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                                        Case "EXO_TextoLin"
-                                            sTextoAmpliado = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sTextoAmpliado = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "EXO_IMP"
-                                            sLinImpuestoCod = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sLinImpuestoCod = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "EXO_RET"
-                                            sLinRetCodigo = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sLinRetCodigo = "" Then
-                                                Exit Sub
-                                            End If
-                                        Case "GrossBuyPr"
-                                            sPrecioBruto = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
-                                            If sCamposL(L, 2) = "Y" And sPrecioBruto = "" Then
-                                                Exit Sub
-                                            End If
-                                    End Select
-                                Next
-                                oSboApp.StatusBar.SetText("(EXO) - Valores de líneas leídos.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+
+                                Dim sCuenta As String = "" : Dim sArt As String = "" : Dim sArtDes As String = ""
+                                Dim sCantidad As String = "0.00" : Dim sprecio As String = "0.00" : Dim sDtoLin As String = "0.00" : Dim sTotalServicios As String = "0.00" : Dim sPrecioBruto As String = "0.00"
+                                Dim sTextoAmpliado As String = "" : Dim sLinImpuestoCod As String = "" : Dim sLinRetCodigo As String = ""
+
+                                objglobal.SBOApp.StatusBar.SetText("(EXO) - Leyendo Valores de Líneas...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                ''Ahora la Línea
+                                'For L = 1 To sCamposL.GetUpperBound(0)
+                                '    Select Case sCamposL(L, 1)
+                                '        Case "AcctCode"
+                                '            sCuenta = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sCuenta = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "ItemCode"
+                                '            sArt = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sArt = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "Dscription"
+                                '            sArtDes = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sArtDes = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "Quantity"
+                                '            sCantidad = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sCantidad = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "UnitPrice"
+                                '            sprecio = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sprecio = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "DiscPrcnt"
+                                '            sDtoLin = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sDtoLin = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "EXO_IMPSRV"
+                                '            sTotalServicios = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sTotalServicios = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '            oSboApp.StatusBar.SetText("(EXO) - " & sTotalServicios, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                '        Case "EXO_TextoLin"
+                                '            sTextoAmpliado = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sTextoAmpliado = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "EXO_IMP"
+                                '            sLinImpuestoCod = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sLinImpuestoCod = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "EXO_RET"
+                                '            sLinRetCodigo = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sLinRetCodigo = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '        Case "GrossBuyPr"
+                                '            sPrecioBruto = Leer_Campo(sCamposL(L, 1), sCamposL(L, 3), sCamposL(L, 2), scampos, oSboApp)
+                                '            If sCamposL(L, 2) = "Y" And sPrecioBruto = "" Then
+                                '                Exit Sub
+                                '            End If
+                                '    End Select
+                                'Next
+                                objglobal.SBOApp.StatusBar.SetText("(EXO) - Valores de líneas leídos.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
 #End Region
 
 #Region "Comprobar datos línea"
                                 'Comprobamos que exista la cuenta                                  
                                 If sCuenta <> "" Then
                                     sExiste = ""
-                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """OACT""", """AcctCode""", """AcctCode""='" & sCuenta & "'")
+                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.compañia, """OACT""", """AcctCode""", """AcctCode""='" & sCuenta & "'")
                                     If sExiste = "" Then
-                                        oSboApp.StatusBar.SetText("(EXO) - La Cuenta contable SAP  - " & sCuenta & " - no existe.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                        oSboApp.MessageBox("La Cuenta contable SAP - " & sCuenta & " - no existe.")
+                                        objglobal.SBOApp.StatusBar.SetText("(EXO) - La Cuenta contable SAP  - " & sCuenta & " - no existe.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        objglobal.SBOApp.MessageBox("La Cuenta contable SAP - " & sCuenta & " - no existe.")
                                         Exit Sub
                                     End If
                                 End If
                                 'Comprobamos que exista el artículo
                                 If sTipoLineas = "I" Then
                                     sExiste = ""
-                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """OITM""", """ItemCode""", """ItemCode"" like '" & sArt & "'")
+                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.compañia, """OITM""", """ItemCode""", """ItemCode"" like '" & sArt & "'")
                                     If sExiste = "" Then
-                                        oSboApp.StatusBar.SetText("(EXO) - El Artículo - " & sArt & " - " & sArtDes & " no existe. Borrelo de la sección concepto para poderlo crear automáticamente.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                        oSboApp.MessageBox("El Artículo - " & sArt & " - " & sArtDes & " no existe. Borrelo de la sección concepto para poderlo crear automáticamente.")
+                                        objglobal.SBOApp.StatusBar.SetText("(EXO) - El Artículo - " & sArt & " - " & sArtDes & " no existe. Borrelo de la sección concepto para poderlo crear automáticamente.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        objglobal.SBOApp.MessageBox("El Artículo - " & sArt & " - " & sArtDes & " no existe. Borrelo de la sección concepto para poderlo crear automáticamente.")
                                         Exit Sub
                                     End If
                                 ElseIf sTipoLineas = "S" Then
                                     If sCuenta = "" Then
                                         ' No puede estar la cuenta vacía si es de tipo servicio
                                         sExiste = ""
-                                        sExiste = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """@EXO_CFCNF""", """U_EXO_CSRV""", """Code""='" & CType(oForm.Items.Item("cb_Format").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString & "'")
+                                        sExiste = EXO_GLOBALES.GetValueDB(objglobal.compañia, """@EXO_CFCNF""", """U_EXO_CSRV""", """Code""='" & CType(oForm.Items.Item("cb_Format").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString & "'")
                                         If sExiste = "" Then
                                             sMensaje = " La cuenta en la línea del servicio no puede estar vacía. Por favor, Revise los datos de la parametrización."
-                                            oSboApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                            oSboApp.MessageBox(sMensaje)
+                                            objglobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                            objglobal.SBOApp.MessageBox(sMensaje)
                                             Exit Sub
                                         Else
                                             sCuenta = sExiste
@@ -511,60 +516,52 @@ Public Class EXO_GLOBALES
                                 If sLinImpuestoCod = "" Then
                                     Select Case sTFac
                                         Case "13", "14" 'Ventas
-                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """@EXO_CFCNF""", """U_EXO_IVAV""", """Code""='" & CType(oForm.Items.Item("cb_Format").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString & "'")
+                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.compañia, """@EXO_CFCNF""", """U_EXO_IVAV""", """Code""='" & CType(oForm.Items.Item("cb_Format").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString & "'")
                                         Case "18", "19", "22" 'Compras
-                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """@EXO_CFCNF""", """U_EXO_IVAC""", """Code""='" & CType(oForm.Items.Item("cb_Format").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString & "'")
+                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.compañia, """@EXO_CFCNF""", """U_EXO_IVAC""", """Code""='" & CType(oForm.Items.Item("cb_Format").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString & "'")
                                     End Select
                                 Else
                                     sLinImpuestoCod = sLinImpuestoCod.Replace(",", ".")
                                     Select Case sTFac
                                         Case "13", "14" 'Ventas
-                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """OVTG""", """Code""", """Rate""='" & sLinImpuestoCod & "' and  LENGTH(""Code"")=2 and left(""Code"",1)='R' and ""Category""='O' ")
+                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.compañia, """OVTG""", """Code""", """Rate""='" & sLinImpuestoCod & "' and  LENGTH(""Code"")=2 and left(""Code"",1)='R' and ""Category""='O' ")
                                         Case "18", "19", "22" 'Compras
-                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """OVTG""", """Code""", """Rate""='" & sLinImpuestoCod & "' and  LENGTH(""Code"")=2 and left(""Code"",1)='S' and ""Category""='I' ")
+                                            sLinImpuestoCod = EXO_GLOBALES.GetValueDB(objglobal.compañia, """OVTG""", """Code""", """Rate""='" & sLinImpuestoCod & "' and  LENGTH(""Code"")=2 and left(""Code"",1)='S' and ""Category""='I' ")
                                     End Select
                                 End If
                                 If sLinImpuestoCod <> "" Then
                                     sExiste = ""
-                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """OVTG""", """Code""", """Code""='" & sLinImpuestoCod & "'")
+                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.compañia, """OVTG""", """Code""", """Code""='" & sLinImpuestoCod & "'")
                                     If sExiste = "" Then
-                                        oSboApp.StatusBar.SetText("(EXO) - El Grupo Impositivo  - " & sLinImpuestoCod & " - no existe.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                        oSboApp.MessageBox("El Grupo Impositivo  - " & sLinImpuestoCod & " - no existe.")
+                                        objglobal.SBOApp.StatusBar.SetText("(EXO) - El Grupo Impositivo  - " & sLinImpuestoCod & " - no existe.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        objglobal.SBOApp.MessageBox("El Grupo Impositivo  - " & sLinImpuestoCod & " - no existe.")
                                         Exit Sub
                                     End If
                                 End If
                                 'Comprobamos que exista la retención si está relleno
                                 If sLinRetCodigo <> "" Then
-                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.conexionSAP.compañia, """CRD4""", """WTCode""", """CardCode""='" & sCliente & "' and ""WTCode""='" & sLinRetCodigo & "'")
+                                    sExiste = EXO_GLOBALES.GetValueDB(objglobal.compañia, """CRD4""", """WTCode""", """CardCode""='" & sCliente & "' and ""WTCode""='" & sLinRetCodigo & "'")
                                     If sExiste = "" Then
-                                        oSboApp.StatusBar.SetText("(EXO) - El indicador de Retención  - " & sLinRetCodigo & " - no no está marcado para el interlocutor " & sCliente & ". Por favor, revise el interlocutor.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                        oSboApp.MessageBox("El indicador de Retención  - " & sLinRetCodigo & " - no no está marcado para el interlocutor " & sCliente & ". Por favor, revise el interlocutor.")
+                                        objglobal.SBOApp.StatusBar.SetText("(EXO) - El indicador de Retención  - " & sLinRetCodigo & " - no no está marcado para el interlocutor " & sCliente & ". Por favor, revise el interlocutor.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        objglobal.SBOApp.MessageBox("El indicador de Retención  - " & sLinRetCodigo & " - no no está marcado para el interlocutor " & sCliente & ". Por favor, revise el interlocutor.")
                                         Exit Sub
                                     End If
                                 End If
 #End Region
                                 'Grabamos la línea
-                                sSQL = "insert into ""@EXO_TMPDOCL"" values('" & iDoc.ToString & "','" & iLinea & "','',0,'" & objglobal.usuario & "',"
+                                sSQL = "insert into ""@EXO_TMPDOCL"" values('" & iDoc.ToString & "','" & iLinea & "','',0,'" & objglobal.SBOApp.Company.UserName & "',"
                                 sSQL &= "'" & sCuenta & "','" & sArt & "','" & sArtDes & "'," & EXO_GLOBALES.DblNumberToText(objglobal, sCantidad.ToString).Replace(",", ".") & ","
                                 sSQL &= EXO_GLOBALES.DblNumberToText(objglobal, sprecio.ToString) & "," & EXO_GLOBALES.DblNumberToText(objglobal, sDtoLin.ToString)
                                 sSQL &= "," & EXO_GLOBALES.DblNumberToText(objglobal, sTotalServicios.ToString).Replace(",", ".") & ",'" & sLinImpuestoCod & "','" & sLinRetCodigo & "','"
                                 sSQL &= sTextoAmpliado & "','" & sTipoLineas & "'," & sPrecioBruto & " ) "
                                 oRs.DoQuery(sSQL)
 
-                                                                      iLinea += 1
-                            End If
-                                                            End If
-            Else
-            sSaltarCabecera = "N"
+                                iLinea += 1
+                            Else
+                                sSaltarCabecera = "N"
                             End If
 
-
-
-
-
-
-        Catch ex As Microsoft.VisualBasic.
-                            FileIO.MalformedLineException
+                        Catch ex As Microsoft.VisualBasic.FileIO.MalformedLineException
                             objglobal.SBOApp.StatusBar.SetText("(EXO) - Línea " & ex.Message & " no es válida y se omitirá.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                             objglobal.SBOApp.MessageBox("Línea " & ex.Message & " no es válida y se omitirá.")
                         End Try

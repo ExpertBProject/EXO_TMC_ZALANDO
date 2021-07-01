@@ -89,16 +89,20 @@ Public Class EXO_CFZA
         If objGlobal.refDi.comunes.esAdministrador Then
             If Not objGlobal.funcionesUI.refDi.OGEN.existeVariable("Zalando_IC") Then
                 objGlobal.funcionesUI.refDi.OGEN.fijarValorVariable("Zalando_IC", "Z000000")
-                objGlobal.SBOApp.StatusBar.SetText("Creado Parñametro: Zalando_IC", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+                objGlobal.SBOApp.StatusBar.SetText("Creado Parámetro: Zalando_IC", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             End If
 
             If Not objGlobal.funcionesUI.refDi.OGEN.existeVariable("Zalando_Remark") Then
                 objGlobal.funcionesUI.refDi.OGEN.fijarValorVariable("Zalando_Remark", "MARKETPLACE")
-                objGlobal.SBOApp.StatusBar.SetText("Creado Parñametro: Zalando_Remark", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+                objGlobal.SBOApp.StatusBar.SetText("Creado Parámetro: Zalando_Remark", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             End If
             If Not objGlobal.funcionesUI.refDi.OGEN.existeVariable("Zalando_Fich_con_Cabecera") Then
                 objGlobal.funcionesUI.refDi.OGEN.fijarValorVariable("Zalando_Fich_con_Cabecera", "Y")
-                objGlobal.SBOApp.StatusBar.SetText("Creado Parñametro: Zalando_Fich_con_Cabecera", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+                objGlobal.SBOApp.StatusBar.SetText("Creado Parámetro: Zalando_Fich_con_Cabecera", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            End If
+            If Not objGlobal.funcionesUI.refDi.OGEN.existeVariable("Zalando_Documento") Then
+                objGlobal.funcionesUI.refDi.OGEN.fijarValorVariable("Zalando_Documento", "B")
+                objGlobal.SBOApp.StatusBar.SetText("Creado Parámetro: Zalando_Documento", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             End If
         End If
     End Sub
@@ -582,7 +586,7 @@ Public Class EXO_CFZA
 #Region "TXT|CSV"
             EXO_GLOBALES.TratarFichero_TXT(sArchivo, sDelimitador, oForm, objGlobal.compañia, objGlobal)
 #End Region
-            objGlobal.SBOApp.StatusBar.SetText("(EXO) - Se ha leido correctamente el fichero.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            objGlobal.SBOApp.StatusBar.SetText("(EXO) - Se ha terminado de leer el fichero.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
 
 #Region "cargar Grid con los datos leidos"
             'Ahora cargamos el Grid con los datos guardados
@@ -601,7 +605,7 @@ Public Class EXO_CFZA
 #End Region
             oForm.Freeze(True)
             objGlobal.SBOApp.StatusBar.SetText("Fin del proceso.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-            objGlobal.SBOApp.MessageBox("Se ha leido correctamente el fichero. Fin del proceso")
+            objGlobal.SBOApp.MessageBox("Se ha terminado de leer el fichero. Fin del proceso")
         Catch exCOM As System.Runtime.InteropServices.COMException
             Throw exCOM
         Catch ex As Exception

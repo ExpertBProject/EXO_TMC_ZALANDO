@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports SAPbouiCOM
 
 Public Class EXO_GLOBALES
     Public Shared Sub CopiarRecurso(ByVal pAssembly As Reflection.Assembly, ByVal pNombreRecurso As String, ByVal pRuta As String)
@@ -26,6 +27,31 @@ Public Class EXO_GLOBALES
                 File.Delete(archivo)
             End If
         Next
+    End Sub
+    Public Shared Sub Copia_Seguridad(ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI, ByVal sArchivoOrigen As String, ByVal sArchivo As String)
+        'Comprobamos el directorio de copia que exista
+        Dim sPath As String = ""
+        sPath = IO.Path.GetDirectoryName(sArchivo)
+        If IO.Directory.Exists(sPath) = False Then
+            IO.Directory.CreateDirectory(sPath)
+        End If
+        If IO.File.Exists(sArchivo) = True Then
+            IO.File.Delete(sArchivo)
+        End If
+        'Subimos el archivo
+        oObjGlobal.SBOApp.StatusBar.SetText("(EXO) - Comienza la Copia de seguridad del fichero - " & sArchivoOrigen & " -.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+        If oObjGlobal.SBOApp.ClientType = BoClientType.ct_Browser Then
+            Dim fs As FileStream = New FileStream(sArchivoOrigen, FileMode.Open, FileAccess.Read)
+            Dim b(CInt(fs.Length() - 1)) As Byte
+            fs.Read(b, 0, b.Length)
+            fs.Close()
+            Dim fs2 As New System.IO.FileStream(sArchivo, IO.FileMode.Create, IO.FileAccess.Write)
+            fs2.Write(b, 0, b.Length)
+            fs2.Close()
+        Else
+            My.Computer.FileSystem.CopyFile(sArchivoOrigen, sArchivo)
+        End If
+        oObjGlobal.SBOApp.StatusBar.SetText("(EXO) - Copia de Seguridad realizada Correctamente", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
     End Sub
 #Region "Funciones formateos datos"
     Public Shared Function TextToDbl(ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI, ByVal sValor As String) As Double
@@ -533,7 +559,7 @@ Public Class EXO_GLOBALES
         Dim oDoc As SAPbobsCOM.Documents = Nothing
         Dim sExiste As String = "" ' Para comprobar si existen los datos
 
-        Dim sErrorDes As String = "" : Dim sDocAdd As String = "" : Dim sMensaje As String = ""
+        Dim sErrorDes As String = "" : Dim sDocAdd As String = "" : Dim sDocEntryAdd As String = "" : Dim sMensaje As String = ""
         Dim sTipoFac As String = "" : Dim sModo As String = "" : Dim sTabla As String = ""
 
         Dim oRsCab As SAPbobsCOM.Recordset = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
@@ -819,10 +845,10 @@ Public Class EXO_GLOBALES
                         Else
                             esprimeralinea = True
                             esprimeraportes = True
-                            sDocAdd = oCompany.GetNewObjectKey() 'Recoge el último documento creado
-                            oForm.DataSources.DataTables.Item(sData).SetValue("DocEntry", i, sDocAdd)
+                            sDocEntryAdd = oCompany.GetNewObjectKey() 'Recoge el último documento creado 
+                            oForm.DataSources.DataTables.Item(sData).SetValue("DocEntry", i, sDocEntryAdd)
                             'Buscamos el documento para crear un mensaje
-                            sDocAdd = EXO_GLOBALES.GetValueDB(oCompany, """" & sTabla & """", """DocNum""", """DocEntry""=" & sDocAdd)
+                            sDocAdd = EXO_GLOBALES.GetValueDB(oCompany, """" & sTabla & """", """DocNum""", """DocEntry""=" & sDocEntryAdd)
                             If sModo = "F" Then
                                 sModo = ""
                             Else
@@ -844,6 +870,26 @@ Public Class EXO_GLOBALES
                             End Select
                             oForm.DataSources.DataTables.Item(sData).SetValue("Descripción Estado", i, sMensaje)
                             objglobal.SBOApp.StatusBar.SetText(sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+                            '##########################
+                            ' Attach_SAP
+                            Dim oRsDIR As SAPbobsCOM.Recordset = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+                            Dim sArchivo As String = ""
+                            sSQL = "SELECT ""U_EXO_PATH"" FROM ""@EXO_OGEN"" "
+                            oRsDIR.DoQuery(sSQL)
+                            If oRsDIR.RecordCount > 0 Then
+                                sArchivo = oRsDIR.Fields.Item("U_EXO_PATH").Value.ToString
+                                sArchivo &= "\08.Historico\ZALANDO\DOC_CARGADOS\VENTAS\FACTURAS\"
+                                'Comprobamos que exista el directorio y sino, lo creamos
+                                If System.IO.Directory.Exists(sArchivo) = False Then
+                                    System.IO.Directory.CreateDirectory(sArchivo)
+                                End If
+                            End If
+                            Dim sFichero As String = CType(oForm.Items.Item("txt_Fich").Specific, SAPbouiCOM.EditText).Value.ToString
+                            sFichero = IO.Path.GetFileName(sFichero)
+                            sArchivo &= sFichero
+                            Attach_SAP(objglobal, oCompany, sTabla, sDocEntryAdd, sTipoFac, sArchivo)
+                            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRsDIR, Object))
+                            '##########################
                         End If
                     End If
                 End If
@@ -862,7 +908,7 @@ Public Class EXO_GLOBALES
             'If Company.InTransaction = True Then
             '    Company.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
             'End If
-
+            oForm.Freeze(False)
             EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oDoc, Object))
             EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRsCab, Object))
             EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRsLin, Object))
@@ -872,5 +918,112 @@ Public Class EXO_GLOBALES
             EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRsArt, Object))
         End Try
     End Function
+    Public Shared Sub Attach_SAP(ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI, ByRef oCompany As SAPbobsCOM.Company, ByVal sTabla As String, ByVal sDocEntryAdd As String, ByVal sTipoFac As String, ByVal sArchivoOrigen As String)
+#Region "Variables"
+        Dim sSQL As String = ""
+        Dim oRs As SAPbobsCOM.Recordset = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+        Dim sAttachPath As String = ""
+        Dim sAbsEntry As String = ""
+        Dim oDoc As SAPbobsCOM.Documents = Nothing
+#End Region
+
+        Try
+            'Ruta Anexos
+            sSQL = "SELECT t1.AttachPath FROM OADP t1 WITH (NOLOCK)"
+
+            oRs.DoQuery(sSQL)
+
+            If oRs.RecordCount > 0 Then
+                sAttachPath = oRs.Fields.Item("AttachPath").Value.ToString
+            End If
+
+            If sAttachPath = "" Then
+                Throw New Exception("No está definida la ruta de Anexos en SAP.")
+            Else
+                If Right(sAttachPath, 1) = "\" Then
+                    sAttachPath &= IO.Path.GetFileName(sArchivoOrigen)
+                Else
+                    sAttachPath &= "\" & IO.Path.GetFileName(sArchivoOrigen)
+                End If
+
+                EXO_GLOBALES.Copia_Seguridad(oObjGlobal, sArchivoOrigen, sAttachPath)
+                'Generamos el documento adjunto
+                'If oCompany.InTransaction = True Then
+                '    oCompany.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
+                'End If
+                sSQL = "Select isnull(""AtcEntry"",0) as ""AtcEntry"" from """ & sTabla & """ where ""DocEntry""=" + sDocEntryAdd.ToString & " And ""ObjType""=" & sTipoFac
+                Dim sAtcEntry As String = oObjGlobal.refDi.SQL.sqlStringB1(sSQL)
+
+
+
+                'oCompany.StartTransaction()
+
+                Dim oOATT As SAPbobsCOM.Attachments2 = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oAttachments2), SAPbobsCOM.Attachments2)
+
+                If oOATT.GetByKey(sAtcEntry) = True Then
+                    oOATT.Lines.Add()
+                    oOATT.Lines.FileName = IO.Path.GetFileNameWithoutExtension(sAttachPath)
+                    oOATT.Lines.FileExtension = IO.Path.GetExtension(sAttachPath).Substring(1)
+                    oOATT.Lines.SourcePath = System.IO.Path.GetDirectoryName(sAttachPath)
+                    oOATT.Lines.Override = SAPbobsCOM.BoYesNoEnum.tYES
+
+                    If oOATT.Update <> 0 Then
+                        Throw New Exception(oCompany.GetLastErrorCode.ToString & " / " & oCompany.GetLastErrorDescription.Replace("'", ""))
+                    End If
+
+                    sAbsEntry = sAtcEntry
+                Else
+                    oOATT.Lines.Add()
+                    oOATT.Lines.FileName = IO.Path.GetFileNameWithoutExtension(sAttachPath)
+                    oOATT.Lines.FileExtension = IO.Path.GetExtension(sAttachPath).Substring(1)
+                    oOATT.Lines.SourcePath = System.IO.Path.GetDirectoryName(sAttachPath)
+                    oOATT.Lines.Override = SAPbobsCOM.BoYesNoEnum.tYES
+
+                    If oOATT.Add <> 0 Then
+                        Throw New Exception(oCompany.GetLastErrorCode.ToString & " / " & oCompany.GetLastErrorDescription.Replace("'", ""))
+                    End If
+
+                    sAbsEntry = oCompany.GetNewObjectKey
+                End If
+
+                'Adjuntamos documento a la entrega
+                If sTabla <> "ODRF" Then
+                    Select Case sTipoFac
+                        Case "13" 'Factura de ventas
+                            oDoc = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oInvoices), SAPbobsCOM.Documents)
+
+                        Case "14" 'Abono de ventas
+                            oDoc = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oCreditNotes), SAPbobsCOM.Documents)
+
+                    End Select
+                Else
+                    oDoc = CType(oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oDrafts), SAPbobsCOM.Documents)
+                End If
+
+                If oDoc.GetByKey(sDocEntryAdd) = True Then
+                    oDoc.AttachmentEntry = sAbsEntry
+
+                    If oDoc.Update <> 0 Then
+                        Throw New Exception(oCompany.GetLastErrorCode.ToString & " / " & oCompany.GetLastErrorDescription.Replace("'", ""))
+                    End If
+                End If
+
+                'If oCompany.InTransaction = True Then
+                '    oCompany.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_Commit)
+                'End If
+
+                oObjGlobal.SBOApp.StatusBar.SetText("(EXO) -  Se ha anexado al documento el fichero " & sAttachPath & " - " & "Operación finalizada con éxito.", EXO_Log.EXO_Log.Tipo.informacion)
+            End If
+
+        Catch exCOM As System.Runtime.InteropServices.COMException
+            Throw exCOM
+        Catch ex As Exception
+            Throw ex
+        Finally
+            EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
+        End Try
+    End Sub
+
+
 #End Region
 End Class

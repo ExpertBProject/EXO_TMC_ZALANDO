@@ -382,7 +382,7 @@ Public Class EXO_CFZA
                         sArchivo = sArchivo & sNomFICH
 
                         'Hacemos copia de seguridad para tratarlo
-                        Copia_Seguridad(sArchivoOrigen, sArchivo)
+                        EXO_GLOBALES.Copia_Seguridad(objGlobal, sArchivoOrigen, sArchivo)
                         'Ahora abrimos el fichero para tratarlo
                         TratarFichero(sArchivo, oForm)
                         oForm.Items.Item("btn_Carga").Enabled = True
@@ -549,31 +549,7 @@ Public Class EXO_CFZA
             EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oRs, Object))
         End Try
     End Sub
-    Private Sub Copia_Seguridad(ByVal sArchivoOrigen As String, ByVal sArchivo As String)
-        'Comprobamos el directorio de copia que exista
-        Dim sPath As String = ""
-        sPath = IO.Path.GetDirectoryName(sArchivo)
-        If IO.Directory.Exists(sPath) = False Then
-            IO.Directory.CreateDirectory(sPath)
-        End If
-        If IO.File.Exists(sArchivo) = True Then
-            IO.File.Delete(sArchivo)
-        End If
-        'Subimos el archivo
-        objGlobal.SBOApp.StatusBar.SetText("(EXO) - Comienza la Copia de seguridad del fichero - " & sArchivoOrigen & " -.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-        If objGlobal.SBOApp.ClientType = BoClientType.ct_Browser Then
-            Dim fs As FileStream = New FileStream(sArchivoOrigen, FileMode.Open, FileAccess.Read)
-            Dim b(CInt(fs.Length() - 1)) As Byte
-            fs.Read(b, 0, b.Length)
-            fs.Close()
-            Dim fs2 As New System.IO.FileStream(sArchivo, IO.FileMode.Create, IO.FileAccess.Write)
-            fs2.Write(b, 0, b.Length)
-            fs2.Close()
-        Else
-            My.Computer.FileSystem.CopyFile(sArchivoOrigen, sArchivo)
-        End If
-        objGlobal.SBOApp.StatusBar.SetText("(EXO) - Copia de Seguridad realizada Correctamente", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-    End Sub
+
     Private Sub TratarFichero(ByVal sArchivo As String, ByRef oForm As SAPbouiCOM.Form)
         Dim myStream As StreamReader = Nothing
         Dim Reader As XmlTextReader = New XmlTextReader(myStream)
